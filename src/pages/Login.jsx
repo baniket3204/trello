@@ -4,9 +4,12 @@ import { signInWithGoogle } from '../helper/Firebase';
 
 export const Login = () => {
   return (
-    < div className='login'>
+    <div className='login-page'>
+< div className='login'>
         <h1>Welcome to TRELLO </h1>
-        <button onClick={signInWithGoogle} className='login-btn'>Login with google <FcGoogle /></button>    
+        <button onClick={signInWithGoogle} className='login-btn'>Login with Google <FcGoogle /></button>    
     </div>
+    </div>
+    
   )
 }

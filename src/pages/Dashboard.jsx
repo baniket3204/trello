@@ -4,14 +4,23 @@ import { Navbar } from '../components/Navbar';
 import { AiOutlinePlus } from 'react-icons/ai'
 import { BsThreeDots } from 'react-icons/bs'
 import { Taskcard } from '../components/Taskcard';
-import { getItems } from '../helper/additional';
+import { changetaskState, fetchData, getItems } from '../helper/additional';
 import Card from '../components/Card';
 import { Taskdetails } from '../components/Taskdetails';
-
+import { DragDropContext, Droppable  , Draggable} from 'react-beautiful-dnd';
 
 
 export const Dashboard = () => {
+
+  function onDragEnd(result) {
+      console.log(result);
+      const {destination, draggableId} = result
+      changetaskState(draggableId,destination.droppableId);
+      setToggle(!toggle);
+    }
+
   const userName = localStorage.getItem("name");
+  const tasks = fetchData("tasks");
   const doneTasks = getItems({
     state : "done" ,
     tasks : "tasks"
@@ -28,71 +37,138 @@ export const Dashboard = () => {
     state : "ready" ,
     tasks : "tasks"
   })
-  
+  const [task, setTask] = useState(null);
   const [showdetails , setShowdetails] = useState(false);
-  const handleCard = e =>{
+  const [toggle, setToggle] = useState(false);
+  const handleCard = (e, item)=>{
+    console.log('curr indx', item);
+    setTask(item)
     setShowdetails(true)
   }
-
+  
+  const [showcard , setShowcard] = useState(false);
+  const handleTask = (e) =>{
+    setShowcard(true);
+  }
+  
   return (
-    <> {!userName ?( <Login/>) : (
+      <DragDropContext onDragEnd={onDragEnd}>
+        <> {!userName ?( <Login/>) : (
       <>
       <Navbar />
-     
-     <div className='dash'>
-            <div className='back-log'>
-                 <h3>Backlog</h3>
-                     <AiOutlinePlus />
-                     <BsThreeDots />
-                     {
-                      backlogTasks.map((item) => 
-                       <Card item = {item} onClick = {handleCard}/>
-                      )
-                     }
-                  
-            </div>  
 
-            <div className='ready'>
-              <h3>Ready</h3>
-              <AiOutlinePlus />
-              <BsThreeDots />
-              {
-                      readyTasks.map((item) => 
-                      <Card item = {item} onClick = {handleCard}/>
-                      )
-              }
-            </div>
-
-            <div className='in-progress'>
-               <h3>In Progress</h3>
-               <AiOutlinePlus />
+      {showcard ? (<Taskcard setShowcard = {setShowcard}/>) : 
+      (
+      <div className='dash' >
+      <div className='back-log'>
+        <div className='task-title'>
+           <h3>Backlog</h3>
+           <div className='task-options'>
+               <AiOutlinePlus onClick={() => handleTask() } id = "plus-btn" />
                <BsThreeDots />
-               {
-                      inprogressTasks.map((item) => 
-                      <Card item = {item} onClick = {handleCard}/>
-                      )
-                     }
-            </div>
-       
-           <div className='done'>
-             <h3>Done</h3>
-             <AiOutlinePlus />
-             <BsThreeDots />
-             {
-                      doneTasks.map((item) => 
-                      <Card item = {item} onClick = {handleCard}/>
-                      )
-                     }
            </div>
-     </div>
-     <Taskcard/>
+        </div>
+        <div>
+                <Droppable droppableId = 'backlog'>
+                  {
+                    (provided) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className='tasks'>
+                          {
+                            backlogTasks.map((item, index) => <Card item={item} index={index}/>)
+                          }
+                      </div>
+                    )
+                  }
+
+                </Droppable>    
+        </div>       
+      </div>  
+
+      <div className='ready'>
+        <div className='task-title'>
+        <h3>Ready</h3>
+        <div className='task-options'>
+        <AiOutlinePlus onClick={() => handleTask()}/>
+        <BsThreeDots />
+        </div>
+        </div>
+        <div >
+                <Droppable droppableId = 'ready'>
+                  {
+                    (provided) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className='tasks'>
+                          {
+                            readyTasks.map((item, index) => <Card item={item} index={index}/>)
+                          }
+                      </div>
+                    )
+                  }
+
+                </Droppable>    
+        </div>
+      </div>
+
+      <div className='in-progress'>
+        <div className='task-title'>
+         <h3>In Progress</h3>
+         <div className='task-options'>
+         <AiOutlinePlus onClick={() => handleTask()}/>
+         <BsThreeDots />
+         </div>
+        </div>
+        <div >
+                <Droppable droppableId = 'in-progress'>
+                  {
+                    (provided) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className='tasks'>
+                          {
+                            inprogressTasks.map((item, index) => <Card item={item} index={index}/>)
+                          }
+                      </div>
+                    )
+                  }
+
+                </Droppable>    
+        </div>
+      </div>
+ 
+     <div className='done'>
+      <div className='task-title'>
+       <h3>Done</h3>
+       <div className='task-options'>
+       <AiOutlinePlus onClick={() => handleTask()} />
+       <BsThreeDots />
+       </div>
+        </div>
+        <div >
+                <Droppable droppableId = 'done'>
+                  {
+                    (provided) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className='tasks'>
+                          {
+                            doneTasks.map((item, index) => <Card item={item} index={index}/>)
+                          }
+                      </div>
+                    )
+                  }
+
+                </Droppable>    
+        </div>
+      </div>
+      </div>
+   )
+   
+   }
+         
      {
-      showdetails && <Taskdetails/>
+      showdetails && <Taskdetails task={task}/>
      }
      </>
     )}
-    
     </>
+    
+      </DragDropContext>
+      
     
   )
 }
